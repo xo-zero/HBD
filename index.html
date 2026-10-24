@@ -5,18 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>xo's Birthday</title>
     
-    <!-- 仅保留 Supabase SDK -->
+    <!-- 恢复可爱字体 -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap');
+    </style>
+
+    <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
-         :root { --bg-pink: #fcecf1; --bg-dot: #fff; --window-bg: #fffcf8; --line-color: #c96b7b; --text-color: #b05a6a; }
+        :root { --bg-pink: #fcecf1; --bg-dot: #fff; --window-bg: #fffcf8; --line-color: #c96b7b; --text-color: #b05a6a; }
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         
         body { 
             background-color: var(--bg-pink); 
             background-image: radial-gradient(var(--bg-dot) 15%, transparent 16%), radial-gradient(var(--bg-dot) 15%, transparent 16%); 
             background-size: 40px 40px; background-position: 0 0, 20px 20px; 
-            font-family: 'ZCOOL KuaiLe', cursive; 
+            font-family: 'ZCOOL KuaiLe', cursive; /* 应用字体 */
             height: 100vh; height: 100dvh; 
             display: flex; justify-content: center; align-items: center; 
             overflow: hidden; 
@@ -72,7 +77,6 @@
         .btn:hover { background-color: #f0d5db; }
         .btn:disabled { opacity: 0.5; }
         
-        /* 卡片容器与卡片样式 (确保绝对端正) */
         .cards-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 15px; padding-bottom: 20px; }
         .card { 
             background: #fff; 
@@ -81,7 +85,6 @@
             padding: 15px; 
             box-shadow: 2px 4px 10px rgba(230, 184, 196, 0.2); 
             display: flex; flex-direction: column; gap: 10px; 
-            /* 取消所有可能引起倾斜的样式 */
             transform: none; 
             animation: slideUp 0.5s ease-out; 
         }
@@ -146,14 +149,13 @@
                 <button class="btn" onclick="openForm()">✍️ 写下祝福</button>
                 <div style="display: flex; gap: 8px;">
                     <button class="btn" onclick="openAdminView()">👑 xo查收</button>
-                    <button class="btn" onclick="openMutualView()">🔑 口令查看</button>
                 </div>
             </div>
             <div id="loading">正在加载祝福中... ✨</div>
             <div class="cards-container" id="cards-container"></div>
         </div>
 
-        <!-- 写祝福弹窗 -->
+        <!-- 写祝福弹窗 (已去掉双方可见) -->
         <div class="modal-overlay" id="form-modal">
             <div class="modal">
                 <button class="close-btn" onclick="closeModal('form-modal')">×</button>
@@ -176,7 +178,6 @@
                     <div class="radio-group">
                         <label><input type="radio" name="visibility" value="public" checked> <b>公开</b>（所有人可见）</label>
                         <label><input type="radio" name="visibility" value="creator"> <b>仅 xo 可见</b>（私密信）</label>
-                        <label><input type="radio" name="visibility" value="mutual"> <b>仅双方可见</b>（凭口令查看）</label>
                     </div>
                 </div>
                 <button class="btn" id="submit-btn" style="width: 100%; margin-top: 10px; padding: 12px; font-size: 1.1rem;" onclick="submitWish()">发送祝福 🎈</button>
@@ -193,23 +194,12 @@
                 <div id="admin-cards" class="cards-container" style="margin-top: 20px; grid-template-columns: 1fr;"></div>
             </div>
         </div>
-
-        <!-- 双方可见口令查看 -->
-        <div class="modal-overlay" id="mutual-modal">
-            <div class="modal">
-                <button class="close-btn" onclick="closeModal('mutual-modal')">×</button>
-                <h3>🔑 查看专属卡片</h3>
-                <input type="text" id="mutual-pass" class="passcode-input" placeholder="输入你写信后得到的专属口令">
-                <button class="btn" style="width: 100%; padding: 10px;" onclick="checkMutual()">解密查看</button>
-                <div id="mutual-cards" class="cards-container" style="margin-top: 20px; grid-template-columns: 1fr;"></div>
-            </div>
-        </div>
     </div>
 
     <script>
-        // ⚠️ 替换为你自己的 Supabase URL 和 KEY
-        const SUPABASE_URL = 'https://comrcljxyjkmxqpbbyii.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_tQdnii6gyBA18oTsAbWDVA_8_wNPB9i';
+        // ⚠️ 记得确保这里是你自己的 Supabase 配置
+        const SUPABASE_URL = 'https://comrcljxyjkmxqpbbvii.supabase.co'; 
+        const SUPABASE_KEY = 'sb_publishable_tQdnii6gyBA18oTsAbWDVA_8_wNPB9i'; 
 
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -221,7 +211,6 @@
 
         function openForm() { document.getElementById('form-modal').style.display = 'flex'; }
         function openAdminView() { document.getElementById('admin-modal').style.display = 'flex'; }
-        function openMutualView() { document.getElementById('mutual-modal').style.display = 'flex'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
         // 加载公开卡片
@@ -237,9 +226,9 @@
             data.forEach(wish => { container.innerHTML += generateCardHTML(wish); });
         }
 
-        // 生成卡片HTML (纯净版，无图片，无倾斜)
+        // 生成卡片HTML
         function generateCardHTML(wish) {
-            const displayName = wish.is_anonymous ? '匿名' : (wish.name || '神秘人');
+            const displayName = wish.is_anonymous ? '匿名的小可爱' : (wish.name || '神秘人');
             const date = new Date(wish.created_at).toLocaleDateString();
             return `
                 <div class="card">
@@ -252,7 +241,7 @@
             `;
         }
 
-        // 提交祝福 (无照片，极速秒发)
+        // 提交祝福 (去掉了 mutual_code 逻辑)
         async function submitWish() {
             const btn = document.getElementById('submit-btn');
             const name = document.getElementById('input-name').value.trim();
@@ -264,24 +253,18 @@
 
             btn.disabled = true;
             btn.innerText = '发送中...';
-            const mutualCode = Math.random().toString(36).substring(2, 8).toUpperCase();
 
             try {
                 const { error: dbError } = await _supabase.from('wishes').insert([{
                     name: isAnonymous ? null : name,
                     is_anonymous: isAnonymous,
                     content: content,
-                    visibility: visibility,
-                    mutual_code: visibility === 'mutual' ? mutualCode : null
+                    visibility: visibility
                 }]);
 
                 if (dbError) throw dbError;
 
-                if (visibility === 'mutual') {
-                    alert(`祝福已发送！请记住你的专属查看口令：\n\n【 ${mutualCode} 】\n\n以后xo和你只能凭此口令查看这条祝福。`);
-                } else {
-                    alert('祝福发送成功！🎉');
-                }
+                alert('祝福发送成功！🎉');
 
                 // 清空表单并关闭
                 document.getElementById('input-name').value = '';
@@ -307,26 +290,11 @@
             const container = document.getElementById('admin-cards');
             container.innerHTML = '<p style="text-align:center;">查询中...</p>';
             
+            // 这里的 'xo' 是你的管理密码，必须和数据库里的配置一致
             const { data, error } = await _supabase.rpc('get_creator_wishes', { p_password: pass });
 
             if (error || !data || data.length === 0) {
                 container.innerHTML = '<p style="color:#999;text-align:center;">密码错误，或暂时没有私密祝福。</p>';
-                return;
-            }
-            container.innerHTML = '';
-            data.forEach(wish => { container.innerHTML += generateCardHTML(wish); });
-        }
-
-        // 查收双方祝福
-        async function checkMutual() {
-            const code = document.getElementById('mutual-pass').value.trim().toUpperCase();
-            const container = document.getElementById('mutual-cards');
-            container.innerHTML = '<p style="text-align:center;">查询中...</p>';
-            
-            const { data, error } = await _supabase.rpc('get_mutual_wish', { p_code: code });
-
-            if (error || !data || data.length === 0) {
-                container.innerHTML = '<p style="color:#999;text-align:center;">口令错误，或未找到对应卡片。</p>';
                 return;
             }
             container.innerHTML = '';
